@@ -1,0 +1,237 @@
+---
+title: "Evaluación_1_R (Patrones de las aplicaciones exitosas en Google Play Store)"
+author: "Enrique Esis"
+date: "15 de junio de 2024"
+output:
+  html_document:
+    toc: true                # Activa la tabla de contenido.
+    toc_depth: 3             # Profundidad de la tabla de contenido.
+    toc_float:               # Configura la tabla de contenido flotante.
+      collapsed: true        # Tabla de contenido colapsada por defecto.
+      smooth_scroll: true    # Desplazamiento suave al hacer clic en enlaces.
+    theme: journal           # Aplica el tema "journal".
+    highlight: kate          # Resaltado de sintaxis "kate".
+    df_print: paged          # Impresión paginada de data frames.
+    code_folding: show       # Bloques de código plegables, visibles por defecto.
+    fig_height: 4            # Altura de las figuras.
+    fig_width: 6             # Ancho de las figuras.
+    number_sections: true    # Numera las secciones y subsecciones.
+    self_contained: true     # Crea un archivo HTML auto-contenido.
+
+---
+
+
+## Objetivo
+
+El objetivo principal de este proyecto es analizar el dataset de las aplicaciones de Google Play Store con la intención de obtener información valiosa sobre las tendencias y patrones en las aplicaciones disponibles, así como para identificar los principales factores que influyen en el éxito y popularidad de dichas aplicaciones. Este análisis puede ayudar a entender mejor el entorno de las aplicaciones móviles, permitiendo optimizar los criterios para poder desarrollar aplicaciones mas competitivas en el mercado.
+
+## Objetivos Específicos
+**1)** Desarrollar un codigo con el que pueda realizar un analisis de datos exploratorio de cualquier dataset con el que necesite trabajar sin la necesidad de cambiar los nombres de las variables
+
+**2)** Verificar cual categoría de las aplicaciones es mejor valorada
+
+## Introducción
+
+En el acelerado universo de las aplicaciones móviles, la Google Play Store representa un inmenso repositorio que aloja millones de aplicaciones, conteniendo desde juegos y herramientas de productividad hasta aplicaciones de estilo de vida y educación. Este proyecto se centra en analizar un conjunto de datos de aplicaciones de la Google Play Store con el fin de extraer información valiosa sobre las tendencias predominantes y los factores determinantes de éxito en este mercado dinámico.
+El conjunto de datos seleccionado contiene información detallada sobre diversas métricas de aplicaciones, como el nombre, la categoría, la calificación, el número de instalaciones, el precio, entre otros. A través de este análisis, se pretende identificar patrones que puedan ayudar a comprender mejor el comportamiento de los usuarios, las preferencias del mercado y los elementos que contribuyen significativamente a la popularidad y aceptación de una aplicación.
+
+## Descripción de las variables de interes:
+- **Categoría**: Esta variable clasifica la aplicación móvil en una categoría específica, como redes sociales, juegos, productividad, etc.
+
+- **Clasificación.de.Contenido**: Indica la calificación o etiqueta de contenido asignada a la aplicación, como "Para todos", "Solo para adultos", "Adolescentes", etc.
+
+- **Nombre.de.la.Aplicación**: Es el nombre único que identifica la aplicación móvil en cuestión.
+
+- **Calificación**: Esta variable indica la puntuación promedio otorgada por los usuarios a la aplicación. Por lo general, se basa en una escala de 1 a 5 estrellas, donde 5 representa la mejor calificación.
+
+- **Número.de.Calificaciones**: Indica la cantidad total de calificaciones que ha recibido la aplicación. Cuanto mayor sea este número, más representativa será la calificación promedio.
+
+- **Instalaciones.Máximas**: Es el número total de veces que la aplicación ha sido instalada en dispositivos móviles.
+
+- **Admite.Anuncios**: Esta variable es binaria y especifica si la aplicación admite anuncios publicitarios dentro de su interfaz. Puede ser "Sí" o "No".
+
+- **Fecha.de.Lanzamiento**: Indica la fecha en la que la aplicación fue lanzada al mercado para su descarga e instalación por parte de los usuarios.
+
+
+
+## Funciones a programar:
+**1)** Función para exploración de cada una de las variables numericas.
+
+**2)** Función para exploración de cada una de las variables categoricas
+
+
+# Carga de paquetes
+
+```{r, message=FALSE}
+library(tidyverse)      # Carga el paquete para manipulación de datos
+library(readxl)         # Carga el paquete para leer archivos Excel
+library(ggplot2)        # Carga el paquete para gráficos
+library(dplyr)          # Carga el paquete para manipulación de datos
+library(corrplot)       # Carga el paquete para visualizar la matriz de correlación
+library(visdat)         # Carga el paquete para visualizar datos faltantes
+library(readr)          # Carga el paquete para leer archivos csv
+library(skimr)          # Carga el paquete para resúmenes estadísticos rápidos
+library(data.tree)      # Carga el paquete para manipulación de árboles de datos
+library(DiagrammeR)     # Carga el paquete para crear diagramas de redes
+```
+
+
+# Carga de datos
+Carga el archivo desde ubicación de windows
+
+```{r}
+enlace <-'https://raw.githubusercontent.com/EnriqueEsis/EESIS/main/Google-Playstore_T_R.csv'
+df <- read.csv(enlace, sep = ",")
+
+```
+
+# Identificar los tipos de columnas
+Mostrar resumen rápido y completo del conjunto de datos
+
+```{r}
+skim(df)
+head(df)
+```
+
+# Selección de Variables parte I
+Se procede a cambiar las variables (Acumulado, Gastos, Ingreso, Puntaje) de cualitativas a cuantitativas
+
+`
+
+# Selección de Variables
+Se seleccionan las variables cuantitativas (Edad, Gastos, Ingreso) 
+
+Se seleccionan las variables cualitativas (Sexo, Fuma, Colegio, Financiación, Clases) 
+
+
+Se procede a eliminar el resto de las variables:
+```{r}
+
+# Nombre de las columnas que deseas conservar
+columnas_a_conservar <- c("Admite.Anuncios", 
+                          "Calificación", 
+                          "Categoría", 
+                          "Clasificación.de.Contenido", 
+                          "Gratis", 
+                          "Instalaciones.Máximas", 
+                          "Nombre.de.la.Aplicación", 
+                          "Moneda", 
+                          "Compras.dentro.de.la.Aplicación", 
+                          "Número.de.Calificaciones")
+
+# Seleccionar solo las columnas especificadas
+df <- df[, columnas_a_conservar]
+
+
+# Eliminar filas con NA en las columnas "Calificación"
+df <- df[!is.na(df$Calificación), ]
+
+
+```
+
+# Verificar los cambios
+Mostrar resumen rápido y completo del conjunto de datos
+
+```{r}
+#df <- iris # Para comprobar los gráficos con otro dataset
+
+skim(df)
+head(df)
+```
+
+# Graficos de las variables cuantitativas
+
+```{r}
+numeric_df <- dplyr::select_if(df, is.numeric)
+
+for (columna in names(numeric_df)) {
+  
+  # Calcular los valores estadísticos
+  mediana <- median(numeric_df[[columna]])
+  q1 <- quantile(numeric_df[[columna]], 0.25, na.rm = TRUE)
+  q3 <- quantile(numeric_df[[columna]], 0.75, na.rm = TRUE)
+  min_val <- min(numeric_df[[columna]])
+  max_val <- max(numeric_df[[columna]])
+  
+  # Boxplot con etiquetas numéricas usando annotate
+  boxplot <- ggplot(numeric_df, aes(y = !!sym(columna))) +
+    geom_boxplot(fill = "skyblue", color = "black") +
+    annotate("text", x =0.45, y = mediana, label = paste("M:", round(mediana, 2)), color = "black", size = 3) +
+    annotate("text", x = 0.45, y = q1, label = paste("Q1:", round(q1, 2)), color = "black", size = 3) +
+    annotate("text", x = 0.45, y = q3, label = paste("Q3:", round(q3, 2)), color = "black", size = 3) +
+    annotate("text", x = 0.45, y = min_val, label = paste("Min:", round(min_val, 2)), color = "black", size = 3) +
+    annotate("text", x = 0.45, y = max_val, label = paste("Max:", round(max_val, 2)), color = "black", size = 3) +
+    
+    labs(title = paste("Boxplot de", columna), y = "Valor")
+  
+  # Mostrar el gráfico
+  print(boxplot)
+  
+}
+```
+# Graficos de las variables cualitativas
+
+```{r}
+# Seleccionar solo las columnas categóricas
+columnas_chr <- names(df)[sapply(df, is.character)]
+# Iterar a través de las columnas categóricas y crear los gráficos
+for (column in columnas_chr) {
+  
+  # Crear un gráfico de barras
+  barplot <- ggplot(data = df, aes(x = !!as.name(column))) +
+    geom_bar(fill = "skyblue", color = "black") +
+    geom_text(stat = "count", aes(label = paste(round(after_stat(count)/sum(after_stat(count)) * 100), "%")), position = position_stack(vjust = 0.5)) +
+    labs(title = paste("Frecuencia de", column),
+         x = column,
+         y = "Frecuencia")
+  print(barplot)
+  
+  # Crear un gráfico de torta
+  pie_chart <- ggplot(data = df, aes(x = "", fill = !!as.name(column))) +
+    geom_bar(width = 1) +
+    coord_polar(theta = "y") +
+    labs(title = paste("Distribución de", column),
+         fill = column) +
+    geom_text(stat = "count", aes(label = paste(round(after_stat(count)/sum(after_stat(count)) * 100), "%")), position = position_stack(vjust = 0.5)) +
+    
+    theme_void()
+  
+  print(pie_chart)
+}
+
+```
+
+# Medidas estadisticas de variables cuantitativas
+
+```{r}
+summary(numeric_df)
+```
+
+```{r}
+# Gráfico de dispersión
+# Crear una lista de todas las combinaciones posibles de variables
+combinations <- combn(names(numeric_df), 2)
+
+# Crear un gráfico de dispersión para cada par de variables
+for (i in 1:ncol(combinations)) {
+  var1 <- combinations[1, i]
+  var2 <- combinations[2, i]
+  
+  # Crear el gráfico de dispersión
+  gg <- ggplot(numeric_df, aes(x = !!sym(var2), y = !!sym(var1))) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE, color = "blue") +  # Agregar línea de regresión lineal
+    labs(title = paste("Diagrama de dispersión de", var2, "vs", var1))
+  
+  # Mostrar el gráfico
+  print(gg)
+}
+```
+
+```{r}
+# Matriz de correlación de variables cuantitativas 
+correlation_matrix <- cor(numeric_df)
+correlation_matrix
+
+```
+
